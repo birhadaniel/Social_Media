@@ -15,3 +15,8 @@ export const loginSchema = z.object({
 export const resetSchema = z.object({
   email: z.string().email('Invalid email address'),
 });
+
+export const updateUserSchema = z.object({
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  email: z.string().email('Invalid email address'),
+});
