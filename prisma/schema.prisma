@@ -17,8 +17,18 @@ model User {
 
   followers Follow[] @relation("following")
   following Follow[] @relation("follower")
+  posts     Post[]
 }
+model Post {
+  id        Int      @id @default(autoincrement())
+  authorId  Int
+  content   String
+  imageUrl  String?   // optional media
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
+  author    User      @relation(fields: [authorId], references: [id])
+}
 model Follow {
   followerId  Int
   followingId Int
