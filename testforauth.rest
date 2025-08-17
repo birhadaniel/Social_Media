@@ -1,0 +1,331 @@
+# test.rest
+# Authentication API Tests for Social Media App
+# Use with VS Code REST Client extension
+# Ensure `npm run dev` is running (http://localhost:3000)
+# Reset database before testing: `npx prisma migrate reset --force`
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc1NTQ3MTU4NCwiZXhwIjoxNzU1NDc1MTg0fQ.VFJLHrCFePRx9ExPgdJyBHZD_lxGXiM8351cBcejick
+### 1. Register - Valid User
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "folikia",
+  "email": "folikia@gmail.com",
+  "password": "password123"
+}
+
+### 2. Register - Duplicate Username
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "folikia",
+  "email": "folikia2@gmail.com",
+  "password": "password123"
+}
+
+### 3. Register - Duplicate Email
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "folikia2",
+  "email": "folikia@gmail.com",
+  "password": "password123"
+}
+
+### 4. Register - Invalid Password (Too Short)
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "folikia3",
+  "email": "folikia3@gmail.com",
+  "password": "short"
+}
+
+### 5. Register - Invalid Email
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "folikia3",
+  "email": "invalid",
+  "password": "password123"
+}
+
+### 6. Register - Empty Body
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{}
+
+### 7. Register - Malformed JSON
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{invalid}
+
+### 8. Register - Long Inputs
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "verylongusername12345678901234567890",
+  "email": "verylongemail1234567890@gmail.com",
+  "password": "password123"
+}
+
+### 9. Login - Valid Credentials
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "folikia@gmail.com",
+  "password": "password123"
+}
+
+### 10. Login - Invalid Email
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@gmail.com",
+  "password": "password123"
+}
+
+### 11. Login - Invalid Password
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "folikia@gmail.com",
+  "password": "wrongpassword"
+}
+
+### 12. Login - Invalid Email Format
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "invalid",
+  "password": "password123"
+}
+
+### 13. Reset Password - Valid Email
+POST http://localhost:3000/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "email": "folikia@gmail.com"
+}
+
+### 14. Reset Password - Nonexistent Email
+POST http://localhost:3000/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "email": "nonexistent@gmail.com"
+}
+
+### 15. Reset Password - Invalid Email
+POST http://localhost:3000/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "email": "invalid"
+}
+
+### 16. Register - Second User (Multi-User Test)
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "user2",
+  "email": "user2@gmail.com",
+  "password": "password123"
+}
+
+### 17. Login - Second User
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user2@gmail.com",
+  "password": "password123"
+}
+
+# for testing posts that require authentication
+### 18. Create Post - Valid Post (Requires Auth)
+POST http://localhost:3000/api/posts
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "content": "This is my first post!"
+}
+#### 19. Get Posts - Authenticated User
+GET http://localhost:3000/api/posts
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 20. Get Post by ID - Valid ID (Requires Auth)
+GET http://localhost:3000/api/posts/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 21. Update Post - Valid Post (Requires Auth)
+PUT http://localhost:3000/api/posts/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "content": "Updated post content!"
+}
+
+### 22. Delete Post - Valid ID (Requires Auth)
+DELETE http://localhost:3000/api/posts/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+### 23. Get User Profile - Valid User (Requires Auth)
+GET http://localhost:3000/api/posts/feed
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+
+# test for interactions
+
+### 24. Create Post - User 1
+POST http://localhost:3000/api/posts
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "content": "My first post!",
+  "imageUrl": "https://example.com/image.jpg"
+}
+
+### 25.Like Post - Valid
+POST http://localhost:3000/api/posts/1/likes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 26.Like Post - Already Liked
+POST http://localhost:3000/api/posts/1/likes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 27.Like Post - Invalid Token
+POST http://localhost:3000/api/posts/1/likes
+Content-Type: application/json
+Authorization: Bearer invalid.token.here
+
+### 28.Like Post - Nonexistent Post
+POST http://localhost:3000/api/posts/999/likes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 29.Unlike Post - Valid
+DELETE http://localhost:3000/api/posts/1/likes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 30.Unlike Post - Not Liked
+DELETE http://localhost:3000/api/posts/1/likes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 31. Get Likes for Post - Valid
+GET http://localhost:3000/api/posts/1/likes
+Content-Type: application/json
+
+### 32.Get Likes for Post - Nonexistent
+GET http://localhost:3000/api/posts/999/likes
+Content-Type: application/json
+
+### 33.Add Comment - Valid
+POST http://localhost:3000/api/posts/1/comments
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "content": "Great post!"
+}
+
+### 34.Add Comment - Invalid Token
+POST http://localhost:3000/api/posts/1/comments
+Content-Type: application/json
+Authorization: Bearer invalid.token.here
+
+{
+  "content": "This should fail"
+}
+
+### 35.Add Comment - Missing Content
+POST http://localhost:3000/api/posts/1/comments
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "content": ""
+}
+
+### 36.Add Comment - Nonexistent Post
+POST http://localhost:3000/api/posts/999/comments
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "content": "This should fail"
+}
+
+### 37.Get Comments for Post - Valid
+GET http://localhost:3000/api/posts/1/comments
+Content-Type: application/json
+
+### 38.Get Comments for Post - Nonexistent
+GET http://localhost:3000/api/posts/999/comments
+Content-Type: application/json
+
+### 39.Follow User - Valid
+POST http://localhost:3000/api/users/2/follow
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 40.Follow User - Already Following
+POST http://localhost:3000/api/users/2/follow
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 41.Follow User - Invalid Token
+POST http://localhost:3000/api/users/2/follow
+Content-Type: application/json
+Authorization: Bearer invalid.token.here
+
+### 42.Follow User - Nonexistent
+POST http://localhost:3000/api/users/999/follow
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 43.Follow User - Self
+POST http://localhost:3000/api/users/1/follow
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 44.Unfollow User - Valid
+DELETE http://localhost:3000/api/users/2/follow
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 45.Unfollow User - Not Following
+DELETE http://localhost:3000/api/users/2/follow
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 46.Get Followers and Following - Valid
+GET http://localhost:3000/api/users/2/follow
+Content-Type: application/json
+
+### 47.Get Followers and Following - Nonexistent
+GET http://localhost:3000/api/users/999/follow
+Content-Type: application/json

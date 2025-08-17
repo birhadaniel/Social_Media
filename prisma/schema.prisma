@@ -8,34 +8,59 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  followers Follow[] @relation("following")
-  following Follow[] @relation("follower")
-  posts     Post[]
+  id         Int       @id @default(autoincrement())
+  username   String    @unique
+  email      String    @unique
+  password   String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  posts      Post[]    @relation("UserPosts")
+  likes      Like[]    @relation("UserLikes")
+  comments   Comment[] @relation("UserComments")
+  followedBy Follow[]  @relation("follower")
+  following  Follow[]  @relation("following")
 }
+
 model Post {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   authorId  Int
   content   String
-  imageUrl  String?   // optional media
+  imageUrl  String? // optional media
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-
-  author    User      @relation(fields: [authorId], references: [id])
+  author    User      @relation("UserPosts", fields: [authorId], references: [id])
+  likes     Like[]    @relation("PostLikes")
+  comments  Comment[] @relation("PostComments")
 }
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  user      User     @relation("UserLikes", fields: [userId], references: [id])
+  post      Post     @relation("PostLikes", fields: [postId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  userId    Int
+  postId    Int
+  user      User     @relation("UserComments", fields: [userId], references: [id])
+  post      Post     @relation("PostComments", fields: [postId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Follow {
   followerId  Int
   followingId Int
   createdAt   DateTime @default(now())
+  follower    User     @relation("follower", fields: [followerId], references: [id])
+  following   User     @relation("following", fields: [followingId], references: [id])
 
-  follower    User @relation("follower",  fields: [followerId],  references: [id])
-  following   User @relation("following", fields: [followingId], references: [id])
-
-  @@id([followerId, followingId]) 
+  @@id([followerId, followingId])
 }
