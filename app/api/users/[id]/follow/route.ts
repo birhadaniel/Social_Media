@@ -1,37 +1,56 @@
-import { NextResponse } from "next/server";
-import { followUser, unfollowUser } from "@/services/users/userService";
-import { verifyToken } from "@/lib/auth";
+import { NextResponse } from 'next/server';
+import { followUser, unfollowUser, getFollowersAndFollowing } from '@/services/interactions/manage';
+import { verifyToken } from '@/lib/auth';
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const params = await context.params; // Await params
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const token = authHeader.split(" ")[1];
     const payload = verifyToken(token);
-
     const followingId = parseInt(params.id);
     const follow = await followUser(payload.userId, followingId);
 
-    return NextResponse.json(follow);
-  } catch {
-    return NextResponse.json({ error:"server errors" }, { status: 400 });
+    return NextResponse.json({ message: 'User followed successfully', follow }, { status: 201 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const params = await context.params; // Await params
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const token = authHeader.split(" ")[1];
     const payload = verifyToken(token);
-
     const followingId = parseInt(params.id);
     await unfollowUser(payload.userId, followingId);
 
-    return NextResponse.json({ message: "Unfollowed successfully" });
-  } catch {
-    return NextResponse.json({ error: "Failed to unfollow" }, { status: 400 });
+    return NextResponse.json({ message: 'User unfollowed successfully' });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
+  }
+}
+
+export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const params = await context.params; // Await params
+    const userId = parseInt(params.id);
+    const followersAndFollowing = await getFollowersAndFollowing(userId);
+
+    return NextResponse.json(followersAndFollowing);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
   }
 }
