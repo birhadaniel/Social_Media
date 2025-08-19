@@ -15,11 +15,10 @@ export default function Button({
   type = "button",
   onClick,
 }: ButtonProps) {
-  // Base styles
+  
   const baseStyles =
     "relative bg-sky-700 text-white py-3 px-6 rounded-lg text-lg w-full text-center hover:bg-sky-600 transition duration-200 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-50";
 
-  // If href is provided, render a Link component
   if (href) {
     return (
       <Link href={href} className={`${baseStyles} ${className || ""}`}>
@@ -28,7 +27,6 @@ export default function Button({
     );
   }
 
-  // If no href, render a standard button
   return (
     <button
       type={type}
