@@ -5,9 +5,13 @@ import Link from "next/link";
 import { Mail, Lock } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import AuthBackButton from "@/components/auth/AuthBackButton";
+import BackButton from "@/components/ui/BackButton";
+import { useRouter } from "next/navigation";
+
 
 export default function LoginPage() {
+
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -20,12 +24,13 @@ export default function LoginPage() {
     setErrors(newErrors);
     if (Object.keys(newErrors).length === 0) {
       console.log("Login success.", { email, password });
+      router.push("/feed");
     }
   };
 
   return (
     <main className="flex items-center justify-center min-h-screen px-6 bg-gradient-to-b from-white via-blue-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <AuthBackButton to="/" />
+      <BackButton to="/" />
 
       <div className="w-full max-w-md space-y-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -51,7 +56,7 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             icon={<Lock className="w-5 h-5" />}
-            error={errors.password}
+            error={errors.password}    
           />
 
           <Link

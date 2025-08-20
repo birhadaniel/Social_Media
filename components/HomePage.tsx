@@ -22,7 +22,7 @@ export default function HomePage() {
 
         <div className="flex flex-col gap-4 px-4 animate-fadeIn animation-delay-200">
           <h1 className="text-[clamp(1.5rem,5vw,3rem)] font-extrabold text-gray-900 dark:text-white">
-            LinkUp!
+            SocialApp
           </h1>
           <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-xl mx-auto leading-relaxed">
             Connect, share, and build your digital story — one post at a time.
