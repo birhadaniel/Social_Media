@@ -1,6 +1,7 @@
+/*
 import { NextResponse } from "next/server";
 
-// for fron-end development dummy data
+// for fronend dummy datas
 
 const posts = [
   {
@@ -9,7 +10,7 @@ const posts = [
     username: "janesmith",
     time: "2h",
     ProfileImage: "/images/avatar1.png",
-    content: "Just launched my new portfolio! 🚀 #webdesign #portfolio",
+    content: "Just launched my new portfolio!  #webdesign #portfolio",
     image: "/images/avatar1.png",
     likes: 24,
     comments: 5,
@@ -22,7 +23,7 @@ const posts = [
     username: "alexj",
     time: "4h",
     ProfileImage: "/images/avatar2.png",
-    content: "Working on some exciting new features! Stay tuned 👀",
+    content: "Working on some exciting new features! Stay tuned",
     image: "/images/avatar1.png",
     likes: 10,
     comments: 1,
@@ -35,7 +36,7 @@ const posts = [
     username: "emilyd",
     time: "1d",
     ProfileImage: "/images/avatar2.png",
-    content: "Designing new UI concepts 💡",
+    content: "Designing new UI concepts",
     image: "/images/avatar2.png",
     likes: 40,
     comments: 6,
@@ -48,7 +49,7 @@ const posts = [
     username: "janesmith",
     time: "2h",
     ProfileImage: "/images/avatar1.png",
-    content: "Just launched my new portfolio! 🚀 #webdesign #portfolio",
+    content: "Just launched my new portfolio! #webdesign #portfolio",
     image: "/images/avatar1.png",
     likes: 24,
     comments: 5,
@@ -61,7 +62,7 @@ const posts = [
     username: "alexj",
     time: "4h",
     ProfileImage: "/images/avatar2.png",
-    content: "Working on some exciting new features! Stay tuned 👀",
+    content: "Working on some exciting new features! Stay tuned ",
     image: "/images/avatar1.png",
     likes: 10,
     comments: 1,
@@ -74,7 +75,7 @@ const posts = [
     username: "emilyd",
     time: "1d",
     ProfileImage: "/images/avatar2.png",
-    content: "Designing new UI concepts 💡",
+    content: "Designing new UI concepts",
     image: "/images/avatar2.png",
     likes: 40,
     comments: 6,
@@ -87,7 +88,7 @@ const posts = [
     username: "janesmith",
     time: "2h",
     ProfileImage: "/images/avatar1.png",
-    content: "Just launched my new portfolio! 🚀 #webdesign #portfolio",
+    content: "Just launched my new portfolio!  #webdesign #portfolio",
     image: "/images/avatar1.png",
     likes: 24,
     comments: 5,
@@ -100,7 +101,7 @@ const posts = [
     username: "alexj",
     time: "4h",
     ProfileImage: "/images/avatar2.png",
-    content: "Working on some exciting new features! Stay tuned 👀",
+    content: "Working on some exciting new features! Stay tuned",
     image: "/images/avatar1.png",
     likes: 10,
     comments: 1,
@@ -113,7 +114,7 @@ const posts = [
     username: "emilyd",
     time: "1d",
     ProfileImage: "/images/avatar2.png",
-    content: "Designing new UI concepts 💡",
+    content: "Designing new UI concepts",
     image: "/images/avatar2.png",
     likes: 40,
     comments: 6,
@@ -125,3 +126,47 @@ const posts = [
 export async function GET() {
   return NextResponse.json(posts);
 }
+*/
+import {  NextResponse } from "next/server";
+import { createPost } from "@/services/posts/create";
+import { getPosts } from "@/services/posts/manage";
+import { verifyToken } from "@/lib/auth";
+import { z } from 'zod';
+
+
+const postSchema = z.object({
+  content: z.string().min(1, 'Content is required'),
+  imageUrl: z.string().url().optional(),
+});
+
+export async function GET() {
+  try {
+    const posts = await getPosts();
+    return NextResponse.json(posts);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Unknown error" }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { userId } = verifyToken(token);
+    const body = await req.json();
+    const { content, imageUrl } = postSchema.parse(body);
+
+    const post = await createPost(userId, content, imageUrl);
+    return NextResponse.json({ message: "Post created successfully", post }, { status: 201 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Unknown error" }, { status: 500 });
+  }
+}
+

@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Button from "./ui/Button";
-
+        
 export default function HomePage() {
   return (
     <main className="flex items-center justify-center min-h-screen bg-gradient-to-b from-white via-blue-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-6 overflow-hidden">
@@ -36,6 +36,7 @@ export default function HomePage() {
           >
             Get Started
           </Button>
+
           <p className="text-gray-500 dark:text-gray-400">
             Already have an account?{" "}
             <Link
