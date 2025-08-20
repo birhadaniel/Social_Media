@@ -1,21 +1,39 @@
 import Link from "next/link";
+import { PropsWithChildren } from "react";
 
-interface ButtonProps {
-  href: string;
-  label: string;
+interface ButtonProps extends PropsWithChildren {
+  href?: string;
   className?: string;
+  type?: "button" | "submit" | "reset";
+  onClick?: () => void;
 }
 
-export default function Button({ href, label, className }: ButtonProps) {
+export default function Button({
+  href,
+  children,
+  className,
+  type = "button",
+  onClick,
+}: ButtonProps) {
+  
+  const baseStyles =
+    "relative bg-sky-700 text-white py-3 px-6 rounded-lg text-lg w-full text-center hover:bg-sky-600 transition duration-200 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-50";
+
+  if (href) {
+    return (
+      <Link href={href} className={`${baseStyles} ${className || ""}`}>
+        {children}
+      </Link>
+    );
+  }
+
   return (
-    <Link
-      href={href}
-      className={`relative bg-sky-700 text-white py-3 px-8 rounded-full text-lg w-full max-w-sm mx-auto text-center hover:bg-sky-600 transition overflow-hidden ${
-        className || ""
-      }`}
+    <button
+      type={type}
+      className={`${baseStyles} ${className || ""}`}
+      onClick={onClick}
     >
-      <span className="relative z-10">{label}</span>
-      <span className="absolute inset-0 bg-sky-500 opacity-0 hover:opacity-20 transition duration-300"></span>
-    </Link>
+      {children}
+    </button>
   );
 }
