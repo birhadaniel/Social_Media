@@ -19,6 +19,8 @@ model User {
   comments   Comment[] @relation("UserComments")
   followedBy Follow[]  @relation("follower")
   following  Follow[]  @relation("following")
+  notifications Notification[]
+  media         Media[]
 }
 
 model Post {
@@ -63,4 +65,23 @@ model Follow {
   following   User     @relation("following", fields: [followingId], references: [id])
 
   @@id([followerId, followingId])
+}
+model Notification {
+  id        Int      @id @default(autoincrement())
+  type      String   
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    Int
+
+  user User @relation(fields: [userId], references: [id])
+}
+model Media {
+  id        Int      @id @default(autoincrement())
+  url       String
+  type      String   // "image" | "video"
+  createdAt DateTime @default(now())
+  userId    Int
+
+  user User @relation(fields: [userId], references: [id])
 }
