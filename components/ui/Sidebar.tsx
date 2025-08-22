@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { href: "/feed", label: "Home", icon: Home },
-  { href: "/explore", label: "Explore", icon: Search },
+  { href: "/search", label: "Explore", icon: Search },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/messages", label: "Messages", icon: Mail },
   { href: "/profile", label: "Profile", icon: User },
@@ -49,7 +49,7 @@ export default function Sidebar({ onCompose }: Props) {
       <div className="space-y-2">
         <button
           onClick={() => onCompose?.()}
-          className="w-full flex items-center justify-center bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-full font-semibold focus:outline-none"
+          className="w-full flex items-center justify-center bg-sky-700 hover:bg-sky-600 text-white px-4 py-2 rounded-full font-semibold focus:outline-none cursor-pointer"
         >
           <PlusCircle className="w-5 h-5 mr-2" />
           Post

@@ -6,6 +6,7 @@ import BottomNav from "@/components/ui/BottomNav";
 import Navbar from "@/components/ui/Navbar";
 import FeedTabs from "@/components/feed/FeedTabs";
 import PostCard from "@/components/feed/PostCard";
+import PostModal from "@/components/feed/PostModal";
 
 interface Post {
   id: string;
@@ -24,6 +25,7 @@ export default function FeedPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [activeTab, setActiveTab] = useState<"forYou" | "following">("forYou");
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     async function fetchPosts() {
@@ -42,6 +44,22 @@ export default function FeedPage() {
     fetchPosts();
   }, []);
 
+  const handlePost = (newPost: { content: string; media?: string }) => {
+    const newPostObj: Post = {
+      id: Date.now().toString(),
+      name: "You",
+      username: "me",
+      time: "just now",
+      content: newPost.content,
+      image: newPost.media,
+      likes: 0,
+      comments: 0,
+      shares: 0,
+      following: true,
+    };
+    setPosts([newPostObj, ...posts]);
+  };
+
   const filteredPosts =
     activeTab === "following"
       ? posts.filter((post) => post.following === true)
@@ -49,13 +67,12 @@ export default function FeedPage() {
 
   return (
     <div className="bg-gray-50 dark:bg-gray-950 min-h-screen">
-      {/* desktop */}
-      <Sidebar />
+      {/* Sidebar with Post Button */}
+      <Sidebar onCompose={() => setShowModal(true)} />
 
       <main className="sm:ml-60 flex justify-center">
         <div className="w-full max-w-2xl px-2 pt-6 pb-20">
-          {/* MObile  */}
-          <Navbar />
+          <Navbar onCompose={() => setShowModal(true)} />
 
           <div className="sticky top-0 z-40 bg-gray-50 dark:bg-gray-950 pt-2 pb-3 border-b border-gray-200 dark:border-gray-800">
             <FeedTabs activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -71,7 +88,7 @@ export default function FeedPage() {
                 ))
               ) : (
                 <p className="text-center text-gray-500 mt-4">
-                  No posts to show here 👀
+                  No posts to show here
                 </p>
               )}
             </div>
@@ -79,8 +96,12 @@ export default function FeedPage() {
         </div>
       </main>
 
-      {/* MObile */}
       <BottomNav />
+
+      {/* Modal */}
+      {showModal && (
+        <PostModal onClose={() => setShowModal(false)} onPost={handlePost} />
+      )}
     </div>
   );
 }

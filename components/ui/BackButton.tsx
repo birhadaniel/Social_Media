@@ -9,7 +9,7 @@ export default function BackButton({ to = "/" }: { to?: string }) {
   return (
     <button
       onClick={() => router.push(to)}
-      className="absolute top-4 left-4 p-2 sm:p-3 rounded-full 
+      className="absolute top-3 left-4 p-2 sm:p-3 rounded-full 
                  bg-white dark:bg-gray-900 shadow-md 
                  hover:bg-gray-100 dark:hover:bg-gray-800 
                  transition cursor-pointer"
