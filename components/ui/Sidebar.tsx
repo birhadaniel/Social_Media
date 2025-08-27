@@ -9,7 +9,7 @@ const navItems = [
   { href: "/search", label: "Explore", icon: Search },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/messages", label: "Messages", icon: Mail },
-  { href: "/profile", label: "Profile", icon: User },
+  { href: "/profile/123", label: "Profile", icon: User },
 ];
 
 type Props = { onCompose?: () => void };
