@@ -1,43 +1,43 @@
-// services/posts/manage.ts
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/db';
 
-const prisma = new PrismaClient();
+export async function getPosts(userId?: number, page: number = 1, limit: number = 10) {
+  try {
+    const skip = (page - 1) * limit;
 
-export async function createPost(userId: number, content: string, imageUrl?: string) {
-  return prisma.post.create({
-    data: {
-      content,
-      authorId: userId,
-      imageUrl,
-    },
-  });
-}
+    const where = userId ? { userId } : {};
 
-export async function getPostById(id: number) {
-  return prisma.post.findUnique({
-    where: { id },
-    include: { author: { select: { id: true, username: true } } },
-  });
-}
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        select: {
+          id: true,
+          content: true,
+          mediaUrls: true,
+          likesCount: true,
+          createdAt: true,
+          user: {
+            select: {
+              id: true,
+              username: true,
+              profilePicture: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.post.count({ where }),
+    ]);
 
-export async function getPosts() {
-  return prisma.post.findMany({
-    include: { 
-      author: { select: { id: true, username: true } },
-      likes: { select: { userId: true } },
-      comments: { select: { id: true } }
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-}
-
-export async function updatePost(id: number, content: string, imageUrl?: string) {
-  return prisma.post.update({
-    where: { id },
-    data: { content, imageUrl },
-  });
-}
-
-export async function deletePost(id: number) {
-  return prisma.post.delete({ where: { id } });
+    return {
+      posts,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  } catch (error) {
+    throw error instanceof Error ? error : new Error('Failed to fetch posts');
+  }
 }
