@@ -22,6 +22,7 @@ export default function RegisterPage() {
     if (!email) newErrors.email = "Email is required";
     if (!password) newErrors.password = "Password is required";
     setErrors(newErrors);
+    
     if (Object.keys(newErrors).length === 0) {
       console.log("Register success", { name, email, password });
       router.push("/feed");
