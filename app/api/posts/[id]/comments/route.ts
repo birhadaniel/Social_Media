@@ -1,44 +1,59 @@
-import { NextResponse } from 'next/server';
-import { addComment, getCommentsByPostId } from '@/services/interactions/manage';
-import { verifyToken } from '@/lib/auth';
-import { z } from 'zod';
+import { NextResponse } from "next/server";
+import { verifyToken } from "@/lib/auth";
+import { createComment, getComments } from "@/services/interactions";
 
-const commentSchema = z.object({
-  content: z.string().min(1, 'Comment content is required'),
-});
-
-export async function POST(req: Request, context: { params: Promise<{ id: string }> }) {
+export async function GET(
+  request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const params = await context.params;
-    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { id } = await context.params;
+    const postId = parseInt(id);
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
 
-    const { userId } = verifyToken(token);
-    const body = await req.json();
-    const { content } = commentSchema.parse(body);
-    const postId = Number(params.id);
-
-    const comment = await addComment(userId, postId, content);
-    return NextResponse.json({ message: 'Comment added successfully', comment }, { status: 201 });
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-    return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
+    const result = await getComments(postId, page, limit);
+    return NextResponse.json(result, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : "Failed to fetch comments",
+      },
+      { status: 400 }
+    );
   }
 }
 
-export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
-  try {
-    const params = await context.params;
-    const postId = Number(params.id);
+export async function POST(
+  request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const token = request.headers.get("authorization")?.split(" ")[1];
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-    const comments = await getCommentsByPostId(postId);
-    return NextResponse.json(comments);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-    return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
+  try {
+    const { userId } = verifyToken(token);
+    const { id } = await context.params;
+    const postId = parseInt(id);
+    const body = await request.json();
+    const comment = await createComment(userId, postId, body);
+    return NextResponse.json(comment, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : "Failed to create comment",
+      },
+      {
+        status:
+          error instanceof Error && error.message === "Post not found"
+            ? 404
+            : 400,
+      }
+    );
   }
 }

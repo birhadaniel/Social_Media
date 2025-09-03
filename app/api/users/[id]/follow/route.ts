@@ -1,56 +1,76 @@
 import { NextResponse } from 'next/server';
-import { followUser, unfollowUser, getFollowersAndFollowing } from '@/services/interactions/manage';
+import prisma from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
+// import { followSchema } from '@/lib/validators';
+import { followUser } from '@/services/users/follow';
 
-export async function POST(req: Request, context: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request, { params }: { params: { id: string } }) {
+  const token = request.headers.get('authorization')?.split(' ')[1];
+  if (!token) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    const params = await context.params; // Await params
-    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const payload = verifyToken(token);
-    const followingId = parseInt(params.id);
-    const follow = await followUser(payload.userId, followingId);
-
-    return NextResponse.json({ message: 'User followed successfully', follow }, { status: 201 });
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-    return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
+    const { userId } = verifyToken(token);
+    const follow = await followUser(userId, { followedId: parseInt(params.id) });
+    return NextResponse.json(follow, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to follow user' },
+      { status: 400 }
+    );
   }
 }
 
-export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+  const token = request.headers.get('authorization')?.split(' ')[1];
+  if (!token) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    const params = await context.params; // Await params
-    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { userId } = verifyToken(token);
+    const followedId = parseInt(params.id);
 
-    const payload = verifyToken(token);
-    const followingId = parseInt(params.id);
-    await unfollowUser(payload.userId, followingId);
-
-    return NextResponse.json({ message: 'User unfollowed successfully' });
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    const existingFollow = await prisma.follow.findFirst({
+      where: { followerId: userId, followedId },
+    });
+    if (!existingFollow) {
+      return NextResponse.json({ error: 'Not following this user' }, { status: 400 });
     }
-    return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
+
+    await prisma.follow.delete({
+      where: { id: existingFollow.id },
+    });
+
+    return NextResponse.json({ message: 'Unfollowed successfully' }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to unfollow user' },
+      { status: 400 }
+    );
   }
 }
 
-export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
-  try {
-    const params = await context.params; // Await params
-    const userId = parseInt(params.id);
-    const followersAndFollowing = await getFollowersAndFollowing(userId);
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  const token = request.headers.get('authorization')?.split(' ')[1];
+  if (!token) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-    return NextResponse.json(followersAndFollowing);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-    return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
+  try {
+    const { userId } = verifyToken(token);
+    const followedId = parseInt(params.id);
+
+    const follow = await prisma.follow.findFirst({
+      where: { followerId: userId, followedId },
+    });
+
+    return NextResponse.json({ isFollowing: !!follow }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to check follow status' },
+      { status: 400 }
+    );
   }
 }
