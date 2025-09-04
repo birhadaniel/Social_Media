@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
-import {
-  likePost,
-  unlikePost,
-  getLikesByPostId,
-} from "@/services/interactions";
+import { createLike,deleteLike,getLikes,} from "@/services/interactions";
 import { verifyToken } from "@/lib/auth";
-import { z } from "zod";
 
 export async function POST(
   req: Request,
@@ -20,7 +15,7 @@ export async function POST(
     const { userId } = verifyToken(token);
     const postId = Number(params.id);
 
-    const like = await likePost(userId, postId);
+    const like = await createLike(userId, postId);
     return NextResponse.json(
       { message: "Post liked successfully", like },
       { status: 201 }
@@ -46,7 +41,7 @@ export async function DELETE(
     const { userId } = verifyToken(token);
     const postId = Number(params.id);
 
-    await unlikePost(userId, postId);
+    await deleteLike(userId, postId);
     return NextResponse.json({ message: "Post unliked successfully" });
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -64,7 +59,7 @@ export async function GET(
     const params = await context.params;
     const postId = Number(params.id);
 
-    const likes = await getLikesByPostId(postId);
+    const likes = await getLikes(postId);
     return NextResponse.json(likes);
   } catch (error: unknown) {
     if (error instanceof Error) {
