@@ -10,22 +10,29 @@ import { useUserStore } from "@/lib/UserStore";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/hooks/useUser";
 import { updateUser } from "@/lib/api";
+import { useEffect } from "react";
 
 
 export default function EditProfilePage() {
   const router = useRouter();
   const { userId, loading: authLoading } = useAuth();
-  const { users, updateUser: updateStoreUser } = useUserStore();
+  const { setUser,updateUser: updateStoreUser } = useUserStore();
 
   const { user, loading: userLoading, error: userError } = 
   typeof userId === 'number' ? useUser(userId) : { user: null, loading: false, error: null };
 
-  const current: EditableUser = user
+  useEffect(() => {
+    if (user) {
+      setUser(user);
+    }
+  }, [user, setUser]);
+
+  const current: EditableUser  = user
     ? {
         id: user.id, // id is number, matching EditableUser
         username: user.username,
-        bio: user.bio || '',
-        avatar: user.avatar || '/images/default-avatar.png',
+        bio: user.bio ?? '',
+        avatar: user.avatar ?? '/images/default-avatar.png'
       }
     : {
         id: 0, // Temporary ID until user is loaded
