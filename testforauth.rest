@@ -3,8 +3,9 @@
 # Use with VS Code REST Client extension
 # Ensure `npm run dev` is running (http://localhost:3000)
 # Reset database before testing: `npx prisma migrate reset --force`
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc1NTQ3MTU4NCwiZXhwIjoxNzU1NDc1MTg0fQ.VFJLHrCFePRx9ExPgdJyBHZD_lxGXiM8351cBcejick
-### 1. Register - Valid User
+@token_user1 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc1Njk3Nzc1MywiZXhwIjoxNzU2OTgxMzUzfQ.aEY4YEslAev7CEpBLIZOo5rCQJiwtoEDLCXQyy6XzJo
+
+@token_user2 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTc1Njk3Njk3OCwiZXhwIjoxNzU2OTgwNTc4fQ.D6m74XDULinw_QHQX7fvt850uFdFT9tyF4itt8QO9pM
 POST http://localhost:3000/api/auth/register
 Content-Type: application/json
 
@@ -159,7 +160,7 @@ Content-Type: application/json
 ### 18. Create Post - Valid Post (Requires Auth)
 POST http://localhost:3000/api/posts
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 {
   "content": "This is my first post!"
@@ -167,17 +168,17 @@ Authorization: Bearer {{token}}
 #### 19. Get Posts - Authenticated User
 GET http://localhost:3000/api/posts
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 ### 20. Get Post by ID - Valid ID (Requires Auth)
 GET http://localhost:3000/api/posts/1
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 ### 21. Update Post - Valid Post (Requires Auth)
 PUT http://localhost:3000/api/posts/1
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 {
   "content": "Updated post content!"
@@ -186,11 +187,11 @@ Authorization: Bearer {{token}}
 ### 22. Delete Post - Valid ID (Requires Auth)
 DELETE http://localhost:3000/api/posts/1
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 ### 23. Get User Profile - Valid User (Requires Auth)
 GET http://localhost:3000/api/posts/feed
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 
 # test for interactions
@@ -198,7 +199,7 @@ Authorization: Bearer {{token}}
 ### 24. Create Post - User 1
 POST http://localhost:3000/api/posts
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 {
   "content": "My first post!",
@@ -208,12 +209,12 @@ Authorization: Bearer {{token}}
 ### 25.Like Post - Valid
 POST http://localhost:3000/api/posts/1/likes
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 ### 26.Like Post - Already Liked
 POST http://localhost:3000/api/posts/1/likes
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 ### 27.Like Post - Invalid Token
 POST http://localhost:3000/api/posts/1/likes
@@ -223,17 +224,17 @@ Authorization: Bearer invalid.token.here
 ### 28.Like Post - Nonexistent Post
 POST http://localhost:3000/api/posts/999/likes
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 ### 29.Unlike Post - Valid
 DELETE http://localhost:3000/api/posts/1/likes
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 ### 30.Unlike Post - Not Liked
 DELETE http://localhost:3000/api/posts/1/likes
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 ### 31. Get Likes for Post - Valid
 GET http://localhost:3000/api/posts/1/likes
@@ -246,7 +247,7 @@ Content-Type: application/json
 ### 33.Add Comment - Valid
 POST http://localhost:3000/api/posts/1/comments
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 {
   "content": "Great post!"
@@ -264,7 +265,7 @@ Authorization: Bearer invalid.token.here
 ### 35.Add Comment - Missing Content
 POST http://localhost:3000/api/posts/1/comments
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 {
   "content": ""
@@ -273,7 +274,7 @@ Authorization: Bearer {{token}}
 ### 36.Add Comment - Nonexistent Post
 POST http://localhost:3000/api/posts/999/comments
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 {
   "content": "This should fail"
@@ -290,12 +291,12 @@ Content-Type: application/json
 ### 39.Follow User - Valid
 POST http://localhost:3000/api/users/2/follow
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 ### 40.Follow User - Already Following
 POST http://localhost:3000/api/users/2/follow
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 ### 41.Follow User - Invalid Token
 POST http://localhost:3000/api/users/2/follow
@@ -305,22 +306,22 @@ Authorization: Bearer invalid.token.here
 ### 42.Follow User - Nonexistent
 POST http://localhost:3000/api/users/999/follow
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 ### 43.Follow User - Self
 POST http://localhost:3000/api/users/1/follow
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 ### 44.Unfollow User - Valid
 DELETE http://localhost:3000/api/users/2/follow
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 ### 45.Unfollow User - Not Following
 DELETE http://localhost:3000/api/users/2/follow
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{token_user1}}
 
 ### 46.Get Followers and Following - Valid
 GET http://localhost:3000/api/users/2/follow
@@ -330,4 +331,133 @@ Content-Type: application/json
 GET http://localhost:3000/api/users/999/follow
 Content-Type: application/json
 
+### 48.Send Message - Valid
+POST http://localhost:3000/api/messages
+Content-Type: application/json
+Authorization: Bearer {{token_user1}}
 
+{
+  "receiverId": 2,
+  "content": "Hello, User 2!"
+}
+
+###  48.1 Get Messages - Valid (Between User 1 and User 2)
+GET http://localhost:3000/api/messages?otherUserId=2
+Content-Type: application/json
+Authorization: Bearer {{token_user1}}
+
+### 48.2 Delete Message - Valid (User 1 deletes message)
+DELETE http://localhost:3000/api/messages?messageId=1
+Content-Type: application/json
+Authorization: Bearer {{token_user1}}
+
+### 49.Trigger Notification - Valid LIKE (User 2 likes Post 1)
+POST http://localhost:3000/api/notifications/trigger
+Content-Type: application/json
+Authorization: Bearer {{token_user2}}
+
+{
+  "userId": 1,
+  "type": "LIKE",
+  "postId": 1
+}
+
+### 50.TTrigger Notification - Invalid Token
+POST http://localhost:3000/api/notifications/trigger
+Content-Type: application/json
+Authorization: Bearer invalid.token.here
+
+{
+  "userId": 1,
+  "type": "LIKE",
+  "postId": 1
+}
+### 51.Trigger Notification - Invalid Type
+POST http://localhost:3000/api/notifications/trigger
+Content-Type: application/json
+Authorization: Bearer {{token_user2}}
+
+{
+  "userId": 1,
+  "type": "INVALID",
+  "postId": 1
+}
+### 52.Trigger Notification - Missing postId for LIKE
+POST http://localhost:3000/api/notifications/trigger
+Content-Type: application/json
+Authorization: Bearer {{token_user2}}
+
+{
+  "userId": 1,
+  "type": "LIKE"
+}
+
+### 53.Fetch Notifications - Valid
+GET http://localhost:3000/api/notifications
+Content-Type: application/json
+Authorization: Bearer {{token_user1}}
+
+### 54.Fetch Notifications - Invalid Token
+GET http://localhost:3000/api/notifications
+Content-Type: application/json
+Authorization: Bearer invalid.token.here
+
+### 55.Trigger Notification - Valid COMMENT (User 2 comments on Post 1)
+POST http://localhost:3000/api/notifications/trigger
+Content-Type: application/json
+Authorization: Bearer {{token_user2}}
+
+{
+  "userId": 1,
+  "type": "COMMENT",
+  "postId": 1,
+  "commentId": 1
+}
+### 56.Trigger Notification - Missing commentId for COMMENT
+POST http://localhost:3000/api/notifications/trigger
+Content-Type: application/json
+Authorization: Bearer {{token_user2}}
+
+{
+  "userId": 1,
+  "type": "COMMENT",
+  "postId": 1
+}
+### 57.Trigger Notification - Valid FOLLOW (User 1 follows User 2)
+POST http://localhost:3000/api/notifications/trigger
+Content-Type: application/json
+Authorization: Bearer {{token_user1}}
+
+{
+  "userId": 2,
+  "type": "FOLLOW"
+}
+
+### 58.Trigger Notification - Valid MESSAGE (User 1 messages User 2)
+POST http://localhost:3000/api/notifications/trigger
+Content-Type: application/json
+Authorization: Bearer {{token_user1}}
+
+{
+  "userId": 2,
+  "type": "MESSAGE",
+  "messageId": 2
+}
+
+### 59.Trigger Notification - Same User
+POST http://localhost:3000/api/notifications/trigger
+Content-Type: application/json
+Authorization: Bearer {{token_user1}}
+
+{
+  "userId": 1,
+  "type": "LIKE",
+  "postId": 1
+}
+### 60.Get Likes - Pagination (Page 2, Limit 5)
+GET http://localhost:3000/api/posts/1/likes?page=2&limit=5
+Content-Type: application/json
+
+### 61.Get Comments - Pagination (Page 2, Limit 5)
+GET http://localhost:3000/api/posts/1/comments?page=2&limit=5
+Content-Type: application/json
