@@ -25,7 +25,7 @@ export const useUser = (userId: number) => {
     fetchUser();
   }, [userId]);
 
-  const handleUpdate = async (data: { bio?: string; profilePicture?: string }) => {
+  const handleUpdate = async (data: {username? : string; bio?: string}) => {
     setLoading(true);
     setError(null);
     try {

@@ -46,7 +46,7 @@ export const getUser = async (id: number): Promise<User> => {
   return fetchWithAuth(`/users/${id}`);
 };
 
-export const updateUser = async (id: number, data: { bio?: string; profilePicture?: string }): Promise<User> => {
+export const updateUser = async (id: number, data: { username?: string; bio?: string}): Promise<User> => {
   return fetchWithAuth(`/users/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
