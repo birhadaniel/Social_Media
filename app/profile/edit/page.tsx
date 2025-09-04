@@ -6,23 +6,57 @@ import EditProfileForm, {
   EditableUser,
 } from "@/components/profile/EditProfileForm";
 import { useRouter } from "next/navigation";
-import { useUserStore } from "@/lib/UserStore"; 
+import { useUserStore } from "@/lib/UserStore";
+import { useAuth } from "@/hooks/useAuth";
+import { useUser } from "@/hooks/useUser";
+import { updateUser } from "@/lib/api";
+
 
 export default function EditProfilePage() {
   const router = useRouter();
-  const { users, updateUser } = useUserStore(); 
-  const current = users["123"]; // assuming "123" is the logged-in user
+  const { userId, loading: authLoading } = useAuth();
+  const { users, updateUser: updateStoreUser } = useUserStore();
 
-  const handleSave = (updated: EditableUser & { avatarFile?: File | null }) => {
-    updateUser(updated.id, {
-      name: updated.name,
-      username: updated.username,
-      bio: updated.bio,
-      avatar: updated.avatar,
-    });
+  const { user, loading: userLoading, error: userError } = 
+  typeof userId === 'number' ? useUser(userId) : { user: null, loading: false, error: null };
 
-    router.push(`/profile/${updated.id}`); 
+  const current: EditableUser = user
+    ? {
+        id: user.id, // id is number, matching EditableUser
+        username: user.username,
+        bio: user.bio || '',
+        avatar: user.avatar || '/images/default-avatar.png',
+      }
+    : {
+        id: 0, // Temporary ID until user is loaded
+        username: 'loading',
+        bio: '',
+        avatar: '/images/default-avatar.png',
+      };
+
+  const handleSave = async (updated: EditableUser) => {
+    if (typeof userId !== 'number') {
+      console.error('No valid user ID available');
+      return;
+    }
+    try {
+      await updateUser(userId, {
+        username: updated.username,
+        bio: updated.bio,
+      });
+      updateStoreUser(updated.id.toString(), {
+        id: updated.id,
+        username: updated.username,
+        bio: updated.bio,
+        avatar: updated.avatar,
+      });
+      router.push(`/profile/${updated.id}`);
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+    }
   };
+  if (userError) return <p className="text-red-500">{userError}</p>;
+  if (!userId) return <p className="text-red-500">Please log in to edit your profile</p>;
 
   return (
     <div className="bg-gray-50 dark:bg-gray-950 min-h-screen">
@@ -33,7 +67,7 @@ export default function EditProfilePage() {
             Edit Profile
           </h1>
           <EditProfileForm
-            initial={current} // use store value,not MOCK
+            initial={current} 
             onSave={handleSave}
             onCancel={() => router.back()}
           />
