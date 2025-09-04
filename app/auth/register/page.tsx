@@ -15,7 +15,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: typeof errors = {};
     if (!name) newErrors.name = "Name is required";
@@ -23,9 +23,36 @@ export default function RegisterPage() {
     if (!password) newErrors.password = "Password is required";
     setErrors(newErrors);
     
-    if (Object.keys(newErrors).length === 0) {
-      console.log("Register success", { name, email, password });
+    if (Object.keys(newErrors).length === 0) return;
+    try {
+      setErrors({});
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: name, 
+          email,
+          password,
+        }),
+      });
+      
+      const data = await res.json();
+      
+      if(!res.ok){
+        if (data.error?.includes("Username")) {
+          setErrors({ name: data.error });
+        } else if (data.error?.includes("email")) {
+          setErrors({ email: data.error });
+        } else if (data.error?.includes("Password")) {
+          setErrors({ password: data.error });
+        }
+        return;
+      }
+
+      console.log("✅ Register success:", data);
       router.push("/feed");
+    } catch (err) {
+      console.error(err);
     }
   };
 
