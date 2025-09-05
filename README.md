@@ -96,7 +96,7 @@ This project was brought to life by a dedicated team of developers, each contrib
 - **Eyerusalem Rufael**-  **Frontend Developer** 
 	Role: Spearheaded the frontend architecture, designing responsive UI components with Next.js and Tailwind CSS. Implemented dynamic features like the feed, post modals, and notifications. Ensured cross-device compatibility, smooth animations, and accessibility compliance for an engaging user experience. 
 
-- **Folikia Nigussie ** - ** Backend Developer**  
+- **Folikia Nigussie** - **Backend Developer**  
 	Role: Architected the backend infrastructure, including Next.js API routes and Prisma ORM integration. Designed and implemented secure authentication with JWT and bcrypt, and developed services for posts, messages, notifications, and follows. Ensured API scalability, handled error validation with Zod, and optimized server-side performance.
     
 - **Daniel Birhanu** - **Backend Developer**   
