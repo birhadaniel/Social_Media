@@ -96,14 +96,14 @@ export default function ConversationList({
           <p>No conversations in inbox yet</p>
         </div>
       ) : (
-        conversations.map((c) => (
+        conversations.map((c, index) => (
           <div
             key={c.id}
             onClick={() => onSelectChat(c.id)}
             className="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800 transition"
           >
             <Image
-              src={c.user.profilePicture || '/default-avatar.png'}
+              src={index % 2 === 0 ? '/avatar1.png' : '/avatar2.png'} // Alternate between avatar1.png and avatar2.png
               alt={`${c.user.username}'s avatar`}
               width={40}
               height={40}
