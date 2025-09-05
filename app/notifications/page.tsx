@@ -20,39 +20,46 @@ interface Notification {
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const mock: Notification[] = [
-      {
-        id: "1",
-        type: "like",
-        user: "Alice",
-        avatar: "/images/avatar1.png",
-        message: "liked your post ",
-        time: "2m ago",
-        group: "Today",
-        unread: true,
-      },
-      {
-        id: "2",
-        type: "comment",
-        user: "Bob",
-        avatar: "/images/avatar1.png",
-        message: "commented: “Nice work!” ",
-        time: "10m ago",
-        group: "Today",
-      },
-      {
-        id: "3",
-        type: "follow",
-        user: "Charlie",
-        avatar: "/images/avatar1.png",
-        message: "started following you ",
-        time: "1h ago",
-        group: "This Week",
-      },
-    ];
-    setNotifications(mock);
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.log('No token found, skipping notifications fetch');
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch('/api/notifications', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setNotifications(data.data);
+          } else {
+            // Fallback to empty array if no notifications
+            setNotifications([]);
+          }
+        } else {
+          console.error('Failed to fetch notifications:', response.status);
+          setNotifications([]);
+        }
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+        setNotifications([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
   }, []);
 
   const getIcon = (type: Notification["type"]) => {
@@ -84,14 +91,22 @@ export default function NotificationsPage() {
     return acc;
   }, {} as Record<string, Notification[]>);
 
+  if (loading) {
+    return (
+      <div className="bg-gray-50 dark:bg-gray-950 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading notifications...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-50 dark:bg-gray-950 min-h-screen">
-      {/* Sidebar for desktop */}
       <Sidebar />
-
       <main className="sm:ml-60 flex justify-center">
         <div className="w-full max-w-2xl pb-20">
-          {/*Mobile Top Bar*/}
           <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 sm:hidden">
             <h1 className="text-lg font-bold text-gray-900 dark:text-white">
               Notifications
@@ -101,66 +116,70 @@ export default function NotificationsPage() {
             </button>
           </div>
 
-          {/* Desktop */}
           <h1 className="hidden sm:block text-xl font-bold text-gray-900 dark:text-white mt-4 mb-4 px-2">
             Notifications
           </h1>
 
-          {Object.entries(grouped).map(([group, items]) => (
-            <div key={group} className="mb-14 px-2">
-              <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">
-                {group}
-              </h2>
-              <div className="space-y-3">
-                {items.map((n) => (
-                  <Link
-                    key={n.id}
-                    href={
-                      n.type === "follow"
-                        ? `/profile/${n.user}`
-                        : `/post/${n.id}`
-                    }
-                  >
-                    <div
-                      className={`flex items-center mb-3 gap-4 p-4 rounded-2xl shadow-md transition hover:scale-[1.01] cursor-pointer
-          ${
-            n.unread
-              ? "bg-sky-50 dark:bg-gray-700"
-              : "bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
-          }`}
-                    >
-                      <Image
-                        src={n.avatar || "./image/avatar2.png"}
-                        alt={n.user}
-                        width={48}
-                        height={48}
-                        className="rounded-full"
-                      />
-
-                      <div className="flex-1">
-                        <p
-                          className={`text-sm ${
-                            n.unread
-                              ? "font-semibold text-gray-900 dark:text-white"
-                              : "text-gray-800 dark:text-gray-200"
-                          }`}
-                        >
-                          <span className="font-semibold">{n.user}</span>{" "}
-                          {n.message}
-                        </p>
-                        <p className="text-xs text-gray-500">{n.time}</p>
-                      </div>
-
-                      {getIcon(n.type)}
-                    </div>
-                  </Link>
-                ))}
-              </div>
+          {notifications.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 dark:text-gray-400">No notifications yet</p>
             </div>
-          ))}
+          ) : (
+            Object.entries(grouped).map(([group, items]) => (
+              <div key={group} className="mb-14 px-2">
+                <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">
+                  {group}
+                </h2>
+                <div className="space-y-3">
+                  {items.map((n) => (
+                    <Link
+                      key={n.id}
+                      href={
+                        n.type === "follow"
+                          ? `/profile/${n.user}`
+                          : `/post/${n.id}`
+                      }
+                    >
+                      <div
+                        className={`flex items-center mb-3 gap-4 p-4 rounded-2xl shadow-md transition hover:scale-[1.01] cursor-pointer
+                        ${
+                          n.unread
+                            ? "bg-sky-50 dark:bg-gray-700"
+                            : "bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        }`}
+                      >
+                        <Image
+                          src={n.avatar || "/images/avatar1.png"}
+                          alt={n.user}
+                          width={48}
+                          height={48}
+                          className="rounded-full"
+                        />
+
+                        <div className="flex-1">
+                          <p
+                            className={`text-sm ${
+                              n.unread
+                                ? "font-semibold text-gray-900 dark:text-white"
+                                : "text-gray-800 dark:text-gray-200"
+                            }`}
+                          >
+                            <span className="font-semibold">{n.user}</span>{" "}
+                            {n.message}
+                          </p>
+                          <p className="text-xs text-gray-500">{n.time}</p>
+                        </div>
+
+                        {getIcon(n.type)}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </main>
-
       <BottomNav />
     </div>
   );

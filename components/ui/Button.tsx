@@ -4,6 +4,7 @@ import { PropsWithChildren } from "react";
 interface ButtonProps extends PropsWithChildren {
   href?: string;
   className?: string;
+  disabled?: boolean;
   type?: "button" | "submit" | "reset";
   onClick?: () => void;
 }
@@ -11,6 +12,7 @@ interface ButtonProps extends PropsWithChildren {
 export default function Button({
   href,
   children,
+  disabled,
   className,
   type = "button",
   onClick,
@@ -30,6 +32,7 @@ export default function Button({
   return (
     <button
       type={type}
+      disabled={disabled}
       className={`${baseStyles} ${className || ""}`}
       onClick={onClick}
     >

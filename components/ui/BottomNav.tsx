@@ -3,17 +3,19 @@
 import { Home, Search, Bell, Mail, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const navItems = [
-  { href: "/feed", label: "Home", icon: Home },
-  { href: "/search", label: "Explore", icon: Search },
-  { href: "/notifications", label: "Notifications", icon: Bell },
-  { href: "/messages", label: "Messages", icon: Mail },
-  { href: "/profile/123", label: "Profile", icon: User },
-];
+import { useAuth } from "@/hooks/useAuth";
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { userId } = useAuth();
+
+  const navItems = [
+    { href: "/feed", label: "Home", icon: Home },
+    { href: "/search", label: "Explore", icon: Search },
+    { href: "/notifications", label: "Notifications", icon: Bell },
+    { href: "/messages", label: "Messages", icon: Mail },
+    { href: userId ? `/profile/${userId}` : "/auth/login", label: "Profile", icon: User },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around py-2 sm:hidden z-50">

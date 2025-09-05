@@ -2,58 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { User, Mail, Lock } from "lucide-react";
+import { Mail, Lock, User } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import BackButton from "@/components/ui/BackButton";
-import { useRouter } from "next/navigation";
+import { useAuth } from '@/hooks/useAuth';
 
 export default function RegisterPage() {
-  const router = useRouter();
-  const [name, setName] = useState("");
+  const { handleRegister, loading} = useAuth();
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newErrors: typeof errors = {};
-    if (!name) newErrors.name = "Name is required";
-    if (!email) newErrors.email = "Email is required";
-    if (!password) newErrors.password = "Password is required";
-    setErrors(newErrors);
-    
-    if (Object.keys(newErrors).length === 0) return;
-    try {
-      setErrors({});
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: name, 
-          email,
-          password,
-        }),
-      });
-      
-      const data = await res.json();
-      
-      if(!res.ok){
-        if (data.error?.includes("Username")) {
-          setErrors({ name: data.error });
-        } else if (data.error?.includes("email")) {
-          setErrors({ email: data.error });
-        } else if (data.error?.includes("Password")) {
-          setErrors({ password: data.error });
-        }
-        return;
-      }
-
-      console.log("✅ Register success:", data);
-      router.push("/feed");
-    } catch (err) {
-      console.error(err);
-    }
+    await handleRegister({ username, email ,password });
   };
 
   return (
@@ -71,11 +34,10 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
           <Input
             type="text"
-            placeholder="Enter your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter your username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             icon={<User className="w-5 h-5" />}
-            error={errors.name}
           />
 
           <Input
@@ -84,7 +46,6 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             icon={<Mail className="w-5 h-5" />}
-            error={errors.email}
           />
 
           <Input
@@ -93,14 +54,14 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             icon={<Lock className="w-5 h-5" />}
-            error={errors.password}
           />
 
           <Button
             type="submit"
+            disabled={loading}
             className="w-full py-3 text-lg rounded-lg shadow-md hover:shadow-lg dark:bg-sky-600 dark:hover:bg-sky-500 cursor-pointer"
           >
-            Sign Up
+            {loading ? 'Rergistering...' : 'Sign Up'}
           </Button>
         </form>
 
