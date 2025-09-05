@@ -1,28 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from '@/hooks/useAuth';
 import { Mail } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import BackButton from "@/components/ui/BackButton";
-import { useRouter } from "next/navigation";
 
 
 export default function ForgotPasswordPage() {
-  const router = useRouter();
+  const { handleResetPassword, loading, error } = useAuth();
   const [email, setEmail] = useState("");
-  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      setError("Email is required");
-    } else {
-      setError(null);
-      console.log("Password reset requested for", email);
-      alert("Reset link sent to your email"); // temporary feedback
-      router.push("/auth/login"); 
-    }
+    await handleResetPassword({ email });
+  
   };
 
   return (
@@ -33,6 +26,7 @@ export default function ForgotPasswordPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Reset Your Password
         </h1>
+        {error && <p className={`mb-4 ${error.includes('link sent') ? 'text-green-500' : 'text-red-500'}`}>{error}</p>}
         <p className="text-gray-600 dark:text-gray-400">
           Enter your email to receive reset instructions
         </p>
@@ -44,14 +38,14 @@ export default function ForgotPasswordPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             icon={<Mail className="w-5 h-5" />}
-            error={error || undefined}
           />
 
           <Button
             type="submit"
+            disabled={loading || !email}
             className="w-full py-3 text-lg rounded-lg shadow-md hover:shadow-lg dark:bg-sky-600 dark:hover:bg-sky-500 cursor-pointer"
           >
-            Send Reset Link
+            {loading ? 'Sending...' :'Send Reset Link'}
           </Button>
         </form>
       </div>
