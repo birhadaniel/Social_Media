@@ -5,7 +5,6 @@ import prisma from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify JWT token
     const token = request.headers.get('authorization')?.split(' ')[1];
     if (!token) {
       console.log('Messages API - No token provided');
@@ -26,84 +25,80 @@ export async function GET(request: NextRequest) {
     const conversationId = searchParams.get('conversation');
 
     if (conversationId) {
-      // Fetch messages for a specific conversation
+      // Fetch messages for a specific conversation (inbox context)
+      const targetId = parseInt(conversationId, 10);
       console.log('Messages API - Fetching messages for conversationId:', conversationId);
       const messages = await prisma.message.findMany({
         where: {
           OR: [
-            { senderId: userId, receiverId: parseInt(conversationId) },
-            { senderId: parseInt(conversationId), receiverId: userId },
+            { senderId: userId, receiverId: targetId },
+            { senderId: targetId, receiverId: userId },
           ],
         },
         include: {
-          sender: {
-            select: { id: true, username: true, profilePicture: true },
-          },
-          receiver: {
-            select: { id: true, username: true, profilePicture: true },
-          },
+          sender: { select: { id: true, username: true, profilePicture: true } },
+          receiver: { select: { id: true, username: true, profilePicture: true } },
         },
         orderBy: { createdAt: 'asc' },
       });
-
-      console.log('Messages API - Messages found:', messages.length);
-      return createSuccessResponse(messages, 'Messages retrieved successfully');
-    } else {
-      // Fetch list of conversations
-      console.log('Messages API - Fetching conversations for userId:', userId);
-      const messages = await prisma.message.findMany({
-        where: {
-          OR: [{ senderId: userId }, { receiverId: userId }],
-        },
-        select: {
-          senderId: true,
-          receiverId: true,
-          sender: {
-            select: { id: true, username: true, profilePicture: true },
-          },
-          receiver: {
-            select: { id: true, username: true, profilePicture: true },
-          },
-          content: true,
-          createdAt: true,
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-
-      // Group messages by conversation partner
-      const conversationsMap = new Map();
-      for (const message of messages) {
-        const otherUserId = message.senderId === userId ? message.receiverId : message.senderId;
-        const otherUser = message.senderId === userId ? message.receiver : message.sender;
-
-        if (!conversationsMap.has(otherUserId)) {
-          conversationsMap.set(otherUserId, {
-            user: {
-              id: otherUser.id,
-              username: otherUser.username,
-              profilePicture: otherUser.profilePicture,
-            },
-            lastMessage: {
-              content: message.content,
-              createdAt: message.createdAt,
-            },
-          });
-        }
-      }
-
-      const conversations = Array.from(conversationsMap.values());
-      console.log('Messages API - Conversations found:', conversations.length);
-      return createSuccessResponse(conversations, 'Conversations retrieved successfully');
+      return createSuccessResponse(messages, 'Conversation messages retrieved successfully');
     }
+
+    // Fetch list of conversations (inbox for the authenticated user)
+    console.log('Messages API - Fetching inbox for userId:', userId);
+    const messages = await prisma.message.findMany({
+      where: {
+        OR: [{ senderId: userId }, { receiverId: userId }],
+      },
+      select: {
+        id: true,
+        senderId: true,
+        receiverId: true,
+        sender: {
+          select: { id: true, username: true, profilePicture: true },
+        },
+        receiver: {
+          select: { id: true, username: true, profilePicture: true },
+        },
+        content: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const conversationsMap = new Map();
+    for (const message of messages) {
+      const otherUserId = message.senderId === userId ? message.receiverId : message.senderId;
+      const otherUser = message.senderId === userId ? message.receiver : message.sender;
+
+      if (!conversationsMap.has(otherUserId)) {
+        conversationsMap.set(otherUserId, {
+          id: otherUserId.toString(),
+          user: {
+            id: otherUser.id,
+            username: otherUser.username,
+            profilePicture: otherUser.profilePicture,
+          },
+          lastMsg: {
+            content: message.content,
+            createdAt: message.createdAt,
+          },
+        });
+      }
+    }
+
+    const conversations = Array.from(conversationsMap.values());
+    console.log('Messages API - Inbox conversations found:', conversations.length);
+    return createSuccessResponse(conversations, 'Inbox retrieved successfully');
   } catch (error) {
     console.error('Messages API - Error:', error);
-    return createErrorResponse('Failed to fetch conversations', 500);
+    return createErrorResponse('Failed to fetch inbox', 500);
   }
 }
 
+// POST remains unchanged
 export async function POST(request: NextRequest) {
   try {
-    // Verify JWT token
     const token = request.headers.get('authorization')?.split(' ')[1];
     if (!token) {
       console.log('Messages API - No token provided');
@@ -128,18 +123,13 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Receiver ID and content are required', 400);
     }
 
-    // Check if receiver exists
-    const receiver = await prisma.user.findUnique({
-      where: { id: receiverId },
-    });
-
+    const receiver = await prisma.user.findUnique({ where: { id: receiverId } });
     if (!receiver) {
       console.log('Messages API - Receiver not found, receiverId:', receiverId);
       return createErrorResponse('Receiver not found', 404);
     }
 
-    // Create the message
-    console.log('Messages API - Creating message from senderId:', senderId, 'to receiverId:', receiverId);
+    console.log('Messages API - Creating message in inbox for receiverId:', receiverId, 'from senderId:', senderId);
     const message = await prisma.message.create({
       data: {
         content,
@@ -147,19 +137,15 @@ export async function POST(request: NextRequest) {
         receiverId,
       },
       include: {
-        sender: {
-          select: { id: true, username: true, profilePicture: true },
-        },
-        receiver: {
-          select: { id: true, username: true, profilePicture: true },
-        },
+        sender: { select: { id: true, username: true, profilePicture: true } },
+        receiver: { select: { id: true, username: true, profilePicture: true } },
       },
     });
 
-    console.log('Messages API - Message created, id:', message.id);
-    return createSuccessResponse(message, 'Message sent successfully', 201);
+    console.log('Messages API - Message created in inbox, id:', message.id);
+    return createSuccessResponse(message, 'Message sent to inbox successfully', 201);
   } catch (error) {
     console.error('Messages API - Error:', error);
-    return createErrorResponse('Failed to send message', 500);
+    return createErrorResponse('Failed to send message to inbox', 500);
   }
 }

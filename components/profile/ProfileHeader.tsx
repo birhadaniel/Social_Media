@@ -94,15 +94,16 @@ export default function ProfileHeader({ user, isFollowing, hasConversation, curr
         },
         body: JSON.stringify({
           receiverId: user.id,
-          content: "Hello, I would like to start a conversation.",
+          content: "Hello, I would like to start a conversation with you.", // Explicit inbox message
         }),
       });
 
       if (response.ok) {
+        const data = await response.json();
         setConversationState(true);
-        router.push(`/messages/${user.id}`);
+        router.push(`/messages/${user.id}`); // Navigate to receiver's inbox context
       } else {
-        console.error('Failed to start conversation:', response.status);
+        console.error('Failed to start conversation:', response.status, await response.text());
       }
     } catch (error) {
       console.error('Start conversation error:', error);
@@ -202,7 +203,6 @@ export default function ProfileHeader({ user, isFollowing, hasConversation, curr
                 <span>Message</span>
               </button>
             )}
-
           </>
         )}
       </div>
