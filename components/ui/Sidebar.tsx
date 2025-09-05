@@ -3,19 +3,21 @@
 import { Home, Search, Bell, Mail, User, PlusCircle, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const navItems = [
-  { href: "/feed", label: "Home", icon: Home },
-  { href: "/search", label: "Explore", icon: Search },
-  { href: "/notifications", label: "Notifications", icon: Bell },
-  { href: "/messages", label: "Messages", icon: Mail },
-  { href: "/profile/123", label: "Profile", icon: User },
-];
+import { useAuth } from "@/hooks/useAuth";
 
 type Props = { onCompose?: () => void };
 
 export default function Sidebar({ onCompose }: Props) {
   const pathname = usePathname();
+  const { userId } = useAuth();
+
+  const navItems = [
+    { href: "/feed", label: "Home", icon: Home },
+    { href: "/search", label: "Explore", icon: Search },
+    { href: "/notifications", label: "Notifications", icon: Bell },
+    { href: "/messages", label: "Messages", icon: Mail },
+    { href: userId ? `/profile/${userId}` : "/auth/login", label: "Profile", icon: User },
+  ];
 
   return (
     <aside className="hidden sm:flex flex-col w-60 h-screen fixed left-0 top-0 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-6">

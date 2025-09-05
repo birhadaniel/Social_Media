@@ -13,8 +13,19 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { username, email, password } = registerSchema.parse(body);
-    const user = await register({ username, email, password });
-    return NextResponse.json({ message: 'User registered successfully', user }, { status: 201 });
+    const result = await register({ username, email, password });
+    
+    // Return the exact structure the frontend expects
+    return NextResponse.json({
+      message: 'User registered successfully',
+      token: result.token,
+      userId: result.id,
+      user: {
+        id: result.id,
+        username: result.username,
+        email: result.email
+      }
+    }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ message: 'Registration failed', error: String(error) }, { status: 400 });
   }

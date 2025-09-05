@@ -30,13 +30,34 @@ export default function FeedPage() {
   useEffect(() => {
     async function fetchPosts() {
       try {
-        const res = await fetch("http://localhost:3000/api/posts?limit=10", {
-          cache: "no-store",
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.log('No token found, skipping posts fetch');
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch("/api/posts/feed?limit=10", {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
         });
-        const data: Post[] = await res.json();
-        setPosts(data);
+        
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.data) {
+            setPosts(data.data.posts || []);
+          } else {
+            setPosts([]);
+          }
+        } else {
+          console.error("Failed to fetch posts", res.status);
+          setPosts([]);
+        }
       } catch (err) {
         console.error("Failed to fetch posts", err);
+        setPosts([]);
       } finally {
         setLoading(false);
       }
@@ -44,20 +65,50 @@ export default function FeedPage() {
     fetchPosts();
   }, []);
 
-  const handlePost = (newPost: { content: string; media?: string }) => {
-    const newPostObj: Post = {
-      id: Date.now().toString(),
-      name: "You",
-      username: "me",
-      time: "just now",
-      content: newPost.content,
-      image: newPost.media,
-      likes: 0,
-      comments: 0,
-      shares: 0,
-      following: true,
-    };
-    setPosts([newPostObj, ...posts]);
+  const handlePost = async (newPost: { content: string; media?: string }) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No token found');
+        return;
+      }
+
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: newPost.content,
+          mediaUrls: newPost.media ? [newPost.media] : [],
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          // Refresh posts after successful creation
+          const refreshResponse = await fetch("/api/posts/feed?limit=10", {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+            if (refreshData.success && refreshData.data) {
+              setPosts(refreshData.data.posts || []);
+            }
+          }
+        }
+      } else {
+        console.error('Failed to create post:', response.status);
+      }
+    } catch (error) {
+      console.error('Error creating post:', error);
+    }
   };
 
   const filteredPosts =

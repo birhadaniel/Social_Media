@@ -1,92 +1,210 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
+import { useState } from 'react'; 
+import { UserPlus, MessageCircle, Check, Settings, Edit } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-export type ProfileUser = {
-  id: string;
-  username: string;
-  name: string;
-  bio?: string;
-  avatar: string;
-  followers: number;
-  following: number;
-  isMe?: boolean;
-  isFollowing?: boolean;
-};
+interface ProfileHeaderProps {
+  user: {
+    id: number;
+    username: string;
+    bio: string;
+    profilePicture: string;
+    followersCount: number;
+    followingCount: number;
+    postsCount: number;
+  };
+  isFollowing: boolean;
+  hasConversation: boolean;
+  currentUserId: number | null;
+}
 
-type Props = {
-  user: ProfileUser;
-  onToggleFollow?: (next: boolean) => void;
-};
+export default function ProfileHeader({ user, isFollowing, hasConversation, currentUserId }: ProfileHeaderProps) {
+  const [followingState, setFollowingState] = useState(isFollowing);
+  const [conversationState, setConversationState] = useState(hasConversation);
+  const router = useRouter();
 
-export default function ProfileHeader({ user, onToggleFollow }: Props) {
-  const [following, setFollowing] = useState(!!user.isFollowing);
+  const handleFollow = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found. Please log in.');
+      return;
+    }
 
-  const handleFollow = () => {
-    const next = !following;
-    setFollowing(next);
-    onToggleFollow?.(next);
+    try {
+      const response = await fetch(`/api/users/${user.id}/follow`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setFollowingState(true);
+        console.log('Followed successfully');
+      } else {
+        console.error('Failed to follow:', response.status);
+      }
+    } catch (error) {
+      console.error('Follow error:', error);
+    }
   };
 
+  const handleUnfollow = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found. Please log in.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/users/${user.id}/follow`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setFollowingState(false);
+        console.log('Unfollowed successfully');
+      } else {
+        console.error('Failed to unfollow:', response.status);
+      }
+    } catch (error) {
+      console.error('Unfollow error:', error);
+    }
+  };
+  
+  const handleMessage = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found. Please log in.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          receiverId: user.id,
+          content: "Hello, I would like to start a conversation with you.", // Explicit inbox message
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setConversationState(true);
+        router.push(`/messages/${user.id}`); // Navigate to receiver's inbox context
+      } else {
+        console.error('Failed to start conversation:', response.status, await response.text());
+      }
+    } catch (error) {
+      console.error('Start conversation error:', error);
+    }
+  };
+
+  const isOwnProfile = currentUserId === user.id;
+
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
-      {/* Cover */}
-      <div className="h-28 bg-gradient-to-r from-sky-500 to-indigo-600" />
-
-      <div className="px-4 pb-4 -mt-10">
-        <div className="flex items-end gap-4">
-          <Image
-            src={user.avatar}
-            alt={user.name}
-            width={96}
-            height={96}
-            className="rounded-full border-4 border-white dark:border-gray-900 shadow-md"
+    <div className="flex flex-col items-center text-center p-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="w-24 h-24 rounded-full bg-sky-500 flex items-center justify-center text-white font-bold text-4xl">
+        {user.profilePicture ? (
+          <img 
+            src={user.profilePicture} 
+            alt={user.username} 
+            className="w-24 h-24 rounded-full object-cover"
           />
-          <div className="flex-1">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              {user.name}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">@{user.username}</p>
-          </div>
-
-          {/* Action */}
-          {user.isMe ? (
-            <Link
-              href="/profile/edit"
-              className="px-4 py-2 rounded-lg font-semibold bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
-            >
-              Edit Profile
-            </Link>
-          ) : (
-            <button
-              onClick={handleFollow}
-              className={`px-4 py-2 rounded-lg font-semibold ${
-                following
-                  ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
-                  : "bg-sky-600 hover:bg-sky-500 text-white"
-              }`}
-            >
-              {following ? "Following" : "Follow"}
-            </button>
-          )}
-        </div>
-
-        {/* Bio */}
-        {user.bio && (
-          <p className="mt-3 text-gray-800 dark:text-gray-300">{user.bio}</p>
+        ) : (
+          user.username?.[0]?.toUpperCase() || 'U'
         )}
+      </div>
+      <h1 className="mt-4 text-2xl font-bold text-gray-900 dark:text-gray-100">
+        {user.username}
+      </h1>
+      <p className="mt-2 text-gray-600 dark:text-gray-400 max-w-sm">
+        {user.bio}
+      </p>
 
-        {/* Stats */}
-        <div className="mt-4 flex gap-6 text-sm">
-          <span className="text-gray-800 dark:text-gray-200">
-            <b>{user.followers}</b> Followers
-          </span>
-          <span className="text-gray-800 dark:text-gray-200">
-            <b>{user.following}</b> Following
-          </span>
+      {/* Stats Section */}
+      <div className="mt-4 flex space-x-6 text-center">
+        <div>
+          <p className="font-bold text-gray-900 dark:text-gray-100">{user.postsCount}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Posts</p>
         </div>
+        <div>
+          <p className="font-bold text-gray-900 dark:text-gray-100">{user.followersCount}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Followers</p>
+        </div>
+        <div>
+          <p className="font-bold text-gray-900 dark:text-gray-100">{user.followingCount}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Following</p>
+        </div>
+      </div>
+      
+      {/* Buttons Section */}
+      <div className="mt-4 flex space-x-2">
+        {isOwnProfile ? (
+          <>
+            <button
+              onClick={() => router.push('/settings/profile')}
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-full text-sm font-medium hover:bg-gray-300 transition-colors dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            >
+              <Edit className="w-4 h-4" />
+              <span>Edit Profile</span>
+            </button>
+            <button
+              onClick={() => router.push('/settings')}
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-full text-sm font-medium hover:bg-gray-300 transition-colors dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            >
+              <Settings className="w-4 h-4" />
+              <span>Settings</span>
+            </button>
+          </>
+        ) : (
+          <>
+            {followingState ? (
+              <button
+                onClick={handleUnfollow}
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-full text-sm font-medium hover:bg-gray-300 transition-colors dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+              >
+                <Check className="w-4 h-4" />
+                <span>Following</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleFollow}
+                className="flex items-center space-x-2 px-4 py-2 bg-sky-600 text-white rounded-full text-sm font-medium hover:bg-sky-700 transition-colors"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Follow</span>
+              </button>
+            )}
+            {conversationState ? (
+              <button
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-full text-sm font-medium dark:bg-gray-700 dark:text-gray-200"
+                disabled
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Has Conversation</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleMessage}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700 transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Message</span>
+              </button>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

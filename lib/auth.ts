@@ -6,5 +6,14 @@ export function generateToken(payload: { userId: number }) {
 }
 
 export function verifyToken(token: string) {
-  return jwt.verify(token, process.env.JWT_SECRET!) as { userId: number };
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is not set');
+  }
+  
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET) as { userId: number };
+  } catch (error) {
+    console.error('JWT verification error:', error);
+    throw error;
+  }
 }

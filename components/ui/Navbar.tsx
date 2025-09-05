@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 type MenuItem = {
   href?: string;
@@ -25,6 +26,7 @@ type Props = {
 
 export default function Navbar({ onCompose }: Props) {
   const [open, setOpen] = useState(false);
+  const { userId } = useAuth();
 
   // Menu items with icons 
   const menuItems: MenuItem[] = [
@@ -32,7 +34,7 @@ export default function Navbar({ onCompose }: Props) {
     { href: "/search", label: "Explore", icon: Search },
     { href: "/notifications", label: "Notifications", icon: Bell },
     { href: "/messages", label: "Messages", icon: Mail },
-    { href: "/profile/123", label: "Profile", icon: User },
+    { href: userId ? `/profile/${userId}` : "/auth/login", label: "Profile", icon: User },
     { label: "Create Post", icon: PlusCircle, action: onCompose },
     { href: "/", label: "Logout", icon: LogOut },
   ];

@@ -6,26 +6,18 @@ import { Mail, Lock } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import BackButton from "@/components/ui/BackButton";
-import { useRouter } from "next/navigation";
+import { useAuth } from '@/hooks/useAuth';
 
 
 export default function LoginPage() {
-
-  const router = useRouter();
+  const { handleLogin, loading} = useAuth();
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newErrors: typeof errors = {};
-    if (!email) newErrors.email = "Email is required";
-    if (!password) newErrors.password = "Password is required";
-    setErrors(newErrors);
-    if (Object.keys(newErrors).length === 0) {
-      console.log("Login success.", { email, password });
-      router.push("/feed");
-    }
+    await handleLogin({ email, password });
   };
 
   return (
@@ -47,7 +39,6 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             icon={<Mail className="w-5 h-5" />}
-            error={errors.email}
           />
 
           <Input
@@ -55,8 +46,7 @@ export default function LoginPage() {
             placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            icon={<Lock className="w-5 h-5" />}
-            error={errors.password}    
+            icon={<Lock className="w-5 h-5" />}    
           />
 
           <Link
@@ -67,10 +57,11 @@ export default function LoginPage() {
           </Link>
 
           <Button
+            disabled={loading}
             type="submit"
             className="w-full py-3 text-lg rounded-lg shadow-md hover:shadow-lg dark:bg-sky-600 dark:hover:bg-sky-500 cursor-pointer"
           >
-            Login
+            {loading ? 'Logging in ...' : 'Login'}
           </Button>
         </form>
 
