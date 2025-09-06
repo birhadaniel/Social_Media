@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { createComment, getComments } from "@/services/interactions";
 
+// Use the correct type for the GET function's context
 export async function GET(
   request: Request,
   context: { params: { id: string } }
