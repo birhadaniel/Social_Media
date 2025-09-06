@@ -66,7 +66,7 @@ model Follow {
   follower      User         @relation("Follower", fields: [followerId], references: [id])
   following     User         @relation("Following", fields: [followedId], references: [id])
   createdAt     DateTime     @default(now())
-  @@unique([followerId, followedId]) 
+  @@unique([followerId, followedId])
 }
 
 model Notification {
