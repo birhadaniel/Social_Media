@@ -4,10 +4,10 @@ import { createLike, deleteLike, getLikes } from "@/services/interactions";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Record<string, string> }
 ) {
   try {
-    const postId = Number(params.id);
+    const postId = Number(context.params.id);
     if (isNaN(postId)) {
       return NextResponse.json({ error: "Invalid post ID" }, { status: 400 });
     }
@@ -28,7 +28,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Record<string, string> }
 ) {
   const token = request.headers.get("authorization")?.split(" ")[1];
   if (!token) {
@@ -37,7 +37,7 @@ export async function POST(
 
   try {
     const { userId } = verifyToken(token);
-    const postId = Number(params.id);
+    const postId = Number(context.params.id);
     if (isNaN(postId)) {
       return NextResponse.json({ error: "Invalid post ID" }, { status: 400 });
     }
@@ -54,7 +54,7 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Record<string, string> }
 ) {
   const token = request.headers.get("authorization")?.split(" ")[1];
   if (!token) {
@@ -63,7 +63,7 @@ export async function DELETE(
 
   try {
     const { userId } = verifyToken(token);
-    const postId = Number(params.id);
+    const postId = Number(context.params.id);
     if (isNaN(postId)) {
       return NextResponse.json({ error: "Invalid post ID" }, { status: 400 });
     }
