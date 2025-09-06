@@ -3,7 +3,17 @@ import prisma from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
 import { followerSchema } from '@/lib/validators';
 import { unfollowUser } from '@/services/users/follow';
+import { Prisma } from '@prisma/client';
 
+// Define the type for the result of the Prisma query
+type FollowWithFollower = {
+  follower: {
+    id: number;
+    username: string;
+    profilePicture: string | null;
+    bio: string | null;
+  };
+};
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -25,7 +35,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       orderBy: { createdAt: 'desc' },
     });
 
-    const formattedFollowers = followers.map((follow) => ({
+    const formattedFollowers = followers.map((follow: FollowWithFollower) => ({
       id: follow.follower.id,
       username: follow.follower.username,
       profilePicture: follow.follower.profilePicture,

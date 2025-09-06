@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getUser, updateUser, followUser, unfollowUser, checkFollowStatus } from '@/lib/api';
-import { User } from '@/lib/type';
+import { User } from '@/lib/types';
 
 export const useUser = (userId: number) => {
   const [user, setUser] = useState<User | null>(null);

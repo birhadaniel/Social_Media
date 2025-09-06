@@ -3,6 +3,23 @@ import { createSuccessResponse, createErrorResponse } from '@/lib/apiResponse';
 import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/db';
 
+// Define the type for the result of the Prisma post query
+type PostWithAuthorAndCounts = {
+  id: number;
+  content: string | null;
+  mediaUrls: string[] | null;
+  createdAt: Date;
+  user: {
+    id: number;
+    username: string;
+    profilePicture: string | null;
+  } | null;
+  _count: {
+    likes: number;
+    comments: number;
+  };
+};
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -123,7 +140,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
       isFollowing: !!isFollowing,
       hasConversation: !!hasConversation,
-      posts: posts.map(post => ({
+      posts: posts.map((post: PostWithAuthorAndCounts) => ({
         id: post.id,
         content: post.content,
         mediaUrls: post.mediaUrls,

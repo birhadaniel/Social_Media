@@ -7,17 +7,29 @@ import BottomNav from "@/components/ui/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 
-interface SearchResult {
+interface PostAuthor {
+  username: string;
+}
+
+interface UserSearchResult {
   id: string;
-  type: "user" | "post";
+  type: "user";
   name?: string;
   username?: string;
-  content?: string;
   bio?: string;
   avatar?: string;
   isFollowing?: boolean;
   hasConversation?: boolean;
 }
+
+interface PostSearchResult {
+  id: string;
+  type: "post";
+  content?: string;
+  author?: PostAuthor;
+}
+
+type SearchResult = UserSearchResult | PostSearchResult;
 
 export default function ExplorePage() {
   const [query, setQuery] = useState("");
@@ -269,7 +281,7 @@ export default function ExplorePage() {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Post by {item.author}
+                        Post by {item.author?.username}
                       </p>
                       <button
                         onClick={() => handleLikePost(item.id)}

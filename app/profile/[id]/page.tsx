@@ -15,17 +15,17 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Unwrap the params Promise using React.use()
   const resolvedParams = use(params);
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (authLoading) return;
-      
+
       setLoading(true);
       setError(null);
-      
+
       try {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -37,21 +37,21 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
         console.log('Fetching user data for ID:', resolvedParams.id);
         console.log('API URL:', `/api/users/${resolvedParams.id}`);
         console.log('Token (first 20 chars):', token.substring(0, 20) + '...');
-        
+
         const response = await fetch(`/api/users/${resolvedParams.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
-        
+
         console.log('API Response status:', response.status);
         console.log('API Response headers:', Object.fromEntries(response.headers.entries()));
-        
+
         if (response.ok) {
           const data = await response.json();
           console.log('API Response data:', data);
-          
+
           if (data.success && data.data && data.data.user) {
             setUserData(data.data.user);
             setIsFollowing(data.data.isFollowing);
@@ -128,11 +128,11 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
       <Sidebar />
       <main className="sm:ml-60 flex justify-center">
         <div className="w-full max-w-2xl px-4 pt-6 pb-20">
-          <ProfileHeader 
+          <ProfileHeader
             user={userData}
             isFollowing={isFollowing}
             hasConversation={hasConversation}
-            currentUserId={currentUserId}
+            currentUserId={currentUserId as number | null}
           />
           <UserPosts posts={posts} />
         </div>

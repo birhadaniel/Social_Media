@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User } from './type';
+import { User } from './types';
 
 interface UserStore {
   users: Record<string, User>;

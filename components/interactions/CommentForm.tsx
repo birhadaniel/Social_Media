@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { usePosts } from '@/hooks/usePosts';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { usePosts } from '@/hooks/usePost';
+import Button from '@/components/ui/Button';
+import  Input  from '@/components/ui/Input';
 
 interface CommentFormProps {
   postId: number;

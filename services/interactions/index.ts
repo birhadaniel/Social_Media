@@ -2,6 +2,21 @@ import prisma from '@/lib/db';
 import { createCommentSchema } from '@/lib/validators';
 import { triggerNotification } from '@/services/notifications/trigger';
 
+// Define the type for the Prisma query results
+type FollowerResult = {
+  follower: {
+    id: number;
+    username: string;
+  };
+};
+
+type FollowingResult = {
+  following: {
+    id: number;
+    username: string;
+  };
+};
+
 export async function createComment(userId: number, postId: number, data: unknown) {
   try {
     const { content } = createCommentSchema.parse(data);
@@ -275,8 +290,8 @@ export async function getFollowersAndFollowing(userId: number) {
     });
 
     return {
-      followers: followers.map(f => f.follower),
-      following: following.map(f => f.following),
+      followers: followers.map((f: FollowerResult) => f.follower),
+      following: following.map((f: FollowingResult) => f.following),
     };
   } catch (error) {
     throw error instanceof Error ? error : new Error('Failed to fetch followers and following');

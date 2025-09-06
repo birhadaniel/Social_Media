@@ -1,5 +1,5 @@
-import { usePosts } from '@/hooks/usePosts';
-import { Button } from '@/components/ui/Button';
+import { usePosts } from '@/hooks/usePost';
+import  Button  from '@/components/ui/Button';
 
 interface LikeButtonProps {
   postId: number;

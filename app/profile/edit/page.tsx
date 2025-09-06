@@ -12,14 +12,13 @@ import { useUser } from "@/hooks/useUser";
 import { updateUser } from "@/lib/api";
 import { useEffect } from "react";
 
-
 export default function EditProfilePage() {
   const router = useRouter();
-  const { userId } = useAuth();
+  const { userId, loading: authLoading } = useAuth();
   const { setUser, updateUser: updateStoreUser } = useUserStore();
 
-  // Always call the hook, but handle the case where userId might not be available
-  const { user, error: userError } = useUser(userId || 0);
+  const isUserIdReady = typeof userId === 'number';
+  const { user, error: userError } = useUser(isUserIdReady ? userId : 0);
 
   useEffect(() => {
     if (user) {
@@ -27,7 +26,7 @@ export default function EditProfilePage() {
     }
   }, [user, setUser]);
 
-  const current: EditableUser  = user
+  const current: EditableUser = user
     ? {
         id: user.id, // id is number, matching EditableUser
         username: user.username,
@@ -62,6 +61,11 @@ export default function EditProfilePage() {
       console.error('Failed to update profile:', err);
     }
   };
+
+  if (authLoading || !isUserIdReady) {
+    return <p>Loading...</p>;
+  }
+
   if (userError) return <p className="text-red-500">{userError}</p>;
   if (!userId) return <p className="text-red-500">Please log in to edit your profile</p>;
 
@@ -74,7 +78,7 @@ export default function EditProfilePage() {
             Edit Profile
           </h1>
           <EditProfileForm
-            initial={current} 
+            initial={current}
             onSave={handleSave}
             onCancel={() => router.back()}
           />

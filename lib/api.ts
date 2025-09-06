@@ -1,8 +1,12 @@
-import { User, Post, Comment, Notification } from './type';
+import { User, Post, Comment, Notification } from './types';
 
 const API_URL = '/api';
 
 const getToken = () => localStorage.getItem('token');
+
+interface ApiErrorResponse {
+  error?: string;
+}
 
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const token = getToken();
@@ -22,7 +26,7 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   // Handle non-ok responses first
   if (!response.ok) {
     // Attempt to parse JSON error, but fall back if it fails
-    let errorData = {};
+    let errorData: ApiErrorResponse = {};
     try {
       errorData = await response.json();
     } catch (e) {

@@ -8,24 +8,24 @@ datasource db {
 }
 
 model User {
-  id            Int          @id @default(autoincrement())
-  email         String       @unique
-  username      String       @unique
-  password      String
-  bio           String?
-  profilePicture String?
-  createdAt     DateTime     @default(now())
-  posts         Post[]
-  comments      Comment[]
-  likes         Like[]
-  followers     Follow[]     @relation("Follower")
-  following     Follow[]     @relation("Following")
-  notificationsReceived Notification[] @relation("NotificationsForUser")
-  notificationsSent     Notification[] @relation("NotificationsTriggeredByUser")
-  sentMessages  Message[]    @relation("SentMessages")
-  receivedMessages Message[] @relation("ReceivedMessages")
+  id                      Int       @id @default(autoincrement())
+  email                   String    @unique
+  username                String    @unique
+  password                String
+  bio                     String?
+  profilePicture          String?
+  createdAt               DateTime  @default(now())
+  notificationPreferences Boolean   @default(true) // ADD THIS LINE
+  posts                   Post[]
+  comments                Comment[]
+  likes                   Like[]
+  followers               Follow[]  @relation("Follower")
+  following               Follow[]  @relation("Following")
+  notificationsReceived   Notification[] @relation("NotificationsForUser")
+  notificationsSent       Notification[] @relation("NotificationsTriggeredByUser")
+  sentMessages            Message[] @relation("SentMessages")
+  receivedMessages        Message[] @relation("ReceivedMessages")
 }
-
 model Post {
   id            Int          @id @default(autoincrement())
   userId        Int?
@@ -66,6 +66,7 @@ model Follow {
   follower      User         @relation("Follower", fields: [followerId], references: [id])
   following     User         @relation("Following", fields: [followedId], references: [id])
   createdAt     DateTime     @default(now())
+  @@unique([followerId, followedId]) 
 }
 
 model Notification {

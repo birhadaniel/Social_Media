@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Image as ImageIcon, Video, X } from "lucide-react";
-import { useUser } from "@/hooks/useUser"; 
+import { useAuth } from "@/hooks/useAuth"; // Import the useAuth hook
+import { useUser } from "@/hooks/useUser";
 
 interface PostModalProps {
   onClose: () => void;
@@ -15,8 +16,12 @@ export default function PostModal({ onClose, onPost }: PostModalProps) {
   const [media, setMedia] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
 
-  // 👇 get current user (dynamic instead of hardcoded)
-  const user = useUser();
+  // Use the useAuth hook to get the current user's ID and loading state
+  const { userId, loading: authLoading } = useAuth();
+
+  // Conditionally call the useUser hook only when userId is available and is a number
+  const isUserIdReady = typeof userId === 'number';
+  const { user, error: userError } = useUser(isUserIdReady ? userId : 0);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -59,21 +64,39 @@ export default function PostModal({ onClose, onPost }: PostModalProps) {
     onClose();
   };
 
+  // Handle loading and error states from the user hook
+  if (authLoading || !isUserIdReady || userError) {
+    return (
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+        <p className="text-white">Loading...</p>
+      </div>
+    );
+  }
+
+  // Handle the case where the user object is not available
+  if (!user) {
+    return (
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+        <p className="text-white">User not found or not logged in.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white/90 dark:bg-gray-900/90 rounded-2xl shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto p-4">
         {/* Header */}
         <div className="flex items-center space-x-3 mb-4 sticky top-0 bg-white/90 dark:bg-gray-900/90 z-10">
           <Image
-            src={user.avatar}
-            alt={user.name}
+            src={user.avatar ?? '/images/default-avatar.png'} // Use a default avatar if user.avatar is null
+            alt={user.username ?? 'User'}
             width={40}
             height={40}
             className="rounded-full"
           />
           <div>
             <p className="font-semibold text-gray-900 dark:text-white">
-              {user.name}
+              {user.username}
             </p>
             <p className="text-xs text-gray-500">Public</p>
           </div>
@@ -89,7 +112,7 @@ export default function PostModal({ onClose, onPost }: PostModalProps) {
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder={`What's on your mind, ${user.name}?`} // 👈 even the placeholder is personalized
+          placeholder={`What's on your mind, ${user.username}?`} // 👈 even the placeholder is personalized
           className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-lg mb-3 bg-transparent focus:outline-none resize-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
           rows={3}
         />

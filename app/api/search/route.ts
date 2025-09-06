@@ -3,6 +3,29 @@ import { createSuccessResponse, createErrorResponse } from '@/lib/apiResponse';
 import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/db';
 
+type UserResult = {
+  id: number;
+  username: string;
+  bio: string | null;
+  profilePicture: string | null;
+  _count: {
+    followers: number;
+    following: number;
+    posts: number;
+  };
+};
+
+type PostResult = {
+  id: number;
+  content: string | null;
+  createdAt: Date;
+  likesCount: number;
+  user: {
+    id: number;
+    username: string;
+  } | null;
+};
+
 export async function GET(request: NextRequest) {
   try {
     // Verify JWT token
@@ -81,7 +104,7 @@ export async function GET(request: NextRequest) {
 
     // Check following status and conversations for users
     const userResults = await Promise.all(
-      users.map(async (user) => {
+      users.map(async (user: UserResult) => {
         const isFollowing = await prisma.follow.findFirst({
           where: {
             followerId: userId,
@@ -112,7 +135,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Format post results
-    const postResults = posts.map((post) => ({
+    const postResults = posts.map((post: PostResult) => ({
       id: post.id.toString(),
       type: 'post' as const,
       content: post.content,

@@ -5,10 +5,10 @@ import { createComment, getComments } from "@/services/interactions";
 // Use the correct type for the GET function's context
 export async function GET(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = await params;
     const postId = parseInt(id);
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
@@ -29,7 +29,7 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const token = request.headers.get("authorization")?.split(" ")[1];
   if (!token) {
@@ -38,9 +38,9 @@ export async function POST(
 
   try {
     const decoded = verifyToken(token);
-    const userId = decoded.id; // adjust depending on JWT payload
+    const userId = decoded.userId; // Corrected from decoded.id
 
-    const { id } = context.params;
+    const { id } = await params;
     const postId = parseInt(id);
     const body = await request.json();
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from "@/components/ui/Sidebar";
 import BottomNav from "@/components/ui/BottomNav";
-import { User } from '@/lib/type';
+import { User } from '@/lib/types';
 import { LoadingPage } from '@/components/ui/LoadingSpinner';
 
 export default function CurrentUserProfilePage() {

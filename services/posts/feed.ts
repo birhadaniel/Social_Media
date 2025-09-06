@@ -1,5 +1,10 @@
 import prisma from '@/lib/db';
 
+// Define the type for the result of the Prisma `follow.findMany` query
+type FollowResult = {
+  followedId: number;
+};
+
 export async function getFeed(userId: number, page: number = 1, limit: number = 10) {
   try {
     const skip = (page - 1) * limit;
@@ -9,7 +14,7 @@ export async function getFeed(userId: number, page: number = 1, limit: number = 
       where: { followerId: userId },
       select: { followedId: true },
     });
-    const followingIds = following.map((f) => f.followedId);
+    const followingIds = following.map((f: FollowResult) => f.followedId);
 
     // Include the user's own posts
     const where = {

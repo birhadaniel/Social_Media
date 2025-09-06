@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPost, getFeed, likePost, commentOnPost } from '@/lib/api';
-import { Post, Comment } from '@/lib/type';
+import { Post, Comment } from '@/lib/types';
 
 export const usePosts = () => {
   const [posts, setPosts] = useState<Post[]>([]);

@@ -1,7 +1,8 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createSuccessResponse, createErrorResponse } from '@/lib/apiResponse';
 import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/db';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 export async function GET(request: NextRequest) {
   try {
@@ -61,9 +62,11 @@ export async function POST(request: NextRequest) {
       { notifications: updatedUser.notificationPreferences },
       'Settings updated successfully'
     );
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Settings API error:', error);
-    if (error.code === 'P2025') return createErrorResponse('User not found', 404);
+    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+      return createErrorResponse('User not found', 404);
+    }
     return createErrorResponse('Failed to update settings', 500);
   }
 }
