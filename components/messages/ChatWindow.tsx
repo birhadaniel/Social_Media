@@ -5,6 +5,24 @@ import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import { useAuth } from "@/hooks/useAuth";
 
+
+type ChatMessage = {
+  id: string | number;
+  text: string;
+  isSender: boolean;
+  time: string;
+};
+type ApiMessage = {
+  id: number;
+  content: string;
+  senderId: number;
+  receiverId: number;
+  createdAt: string;
+  sender?: { username?: string };
+  receiver?: { username?: string };
+};
+
+
 export default function ChatWindow({
   chatId,
   onBack,
@@ -12,7 +30,7 @@ export default function ChatWindow({
   chatId: string;
   onBack: () => void;
 }) {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("Unknown User");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -35,7 +53,7 @@ export default function ChatWindow({
         });
         if (response.ok) {
           const data = await response.json();
-          const formattedMessages = (data.data || []).map((m: any) => ({
+          const formattedMessages: ChatMessage[] = (data.data as ApiMessage[]).map((m) => ({
             id: m.id,
             text: m.content,
             isSender: m.senderId === userId,
@@ -45,7 +63,7 @@ export default function ChatWindow({
 
           // Extract username from the first message's sender or receiver
           if (formattedMessages.length > 0) {
-            const firstMessage = data.data[0];
+            const firstMessage: ApiMessage = (data.data as ApiMessage[])[0];
             const otherUser = firstMessage.senderId === userId ? firstMessage.receiver : firstMessage.sender;
             setUsername(otherUser?.username || "Unknown User");
           }
