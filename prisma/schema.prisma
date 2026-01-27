@@ -8,24 +8,97 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                      Int       @id @default(autoincrement())
+  email                   String    @unique
+  username                String    @unique
+  password                String
+  bio                     String?
+  profilePicture          String?
+  createdAt               DateTime  @default(now())
+  notificationPreferences Boolean   @default(true) // ADD THIS LINE
+  posts                   Post[]
+  comments                Comment[]
+  likes                   Like[]
+  followers               Follow[]  @relation("Follower")
+  following               Follow[]  @relation("Following")
+  notificationsReceived   Notification[] @relation("NotificationsForUser")
+  notificationsSent       Notification[] @relation("NotificationsTriggeredByUser")
+  sentMessages            Message[] @relation("SentMessages")
+  receivedMessages        Message[] @relation("ReceivedMessages")
+}
+model Post {
+  id            Int          @id @default(autoincrement())
+  userId        Int?
+  user          User?         @relation(fields: [userId], references: [id])
+  content       String?
+  mediaUrls     String[]     @default([])
+  likesCount    Int          @default(0)
+  createdAt     DateTime     @default(now())
+  comments      Comment[]
+  likes         Like[]
+  notifications Notification[]
+}
 
-  followers Follow[] @relation("following")
-  following Follow[] @relation("follower")
+model Comment {
+  id            Int          @id @default(autoincrement())
+  postId        Int
+  userId        Int
+  post          Post         @relation(fields: [postId], references: [id])
+  user          User         @relation(fields: [userId], references: [id])
+  content       String
+  createdAt     DateTime     @default(now())
+  notifications Notification[]
+}
+
+model Like {
+  id            Int          @id @default(autoincrement())
+  postId        Int
+  userId        Int
+  post          Post         @relation(fields: [postId], references: [id])
+  user          User         @relation(fields: [userId], references: [id])
+  createdAt     DateTime     @default(now())
 }
 
 model Follow {
-  followerId  Int
-  followingId Int
-  createdAt   DateTime @default(now())
+  id            Int          @id @default(autoincrement())
+  followerId    Int
+  followedId    Int
+  follower      User         @relation("Follower", fields: [followerId], references: [id])
+  following     User         @relation("Following", fields: [followedId], references: [id])
+  createdAt     DateTime     @default(now())
+  @@unique([followerId, followedId])
+}
 
-  follower    User @relation("follower",  fields: [followerId],  references: [id])
-  following   User @relation("following", fields: [followingId], references: [id])
+model Notification {
+  id            Int      @id @default(autoincrement())
 
-  @@id([followerId, followingId]) 
+  userId        Int
+  user          User     @relation("NotificationsForUser", fields: [userId], references: [id])
+
+  triggeredById Int?
+  triggeredBy   User?     @relation("NotificationsTriggeredByUser", fields: [triggeredById], references: [id])
+
+  postId        Int?
+  post          Post?    @relation(fields: [postId], references: [id])
+
+  commentId     Int?
+  comment       Comment? @relation(fields: [commentId], references: [id])
+
+  messageId     Int?
+  message       Message? @relation(fields: [messageId], references: [id])
+
+  type          String
+  createdAt     DateTime @default(now())
+}
+
+
+model Message {
+  id            Int          @id @default(autoincrement())
+  senderId      Int
+  receiverId    Int
+  sender        User         @relation("SentMessages", fields: [senderId], references: [id])
+  receiver      User         @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  content       String
+  createdAt     DateTime     @default(now())
+  notifications Notification[]
 }
